@@ -76,6 +76,7 @@ let seconds = 0;
 let difficulty = 'easy';
 let gameOver = false;
 let hintCount = 3;
+let paused = false;
 
 // ===================== DOM =====================
 
@@ -178,18 +179,19 @@ function isValidPlacement(row, col, num) {
 // ===================== 交互 =====================
 
 function selectCell(r, c) {
-  if (gameOver) return;
+  if (gameOver || paused) return;
   selectedCell = [r, c];
   renderBoard();
 }
 
 function placeNumber(num) {
-  if (!selectedCell || gameOver) return;
+  if (!selectedCell || gameOver || paused) return;
   const [r, c] = selectedCell;
   if (givenCells[r][c]) return;
 
   playerBoard[r][c] = num;
   renderBoard();
+  saveGame();
 
   // 检查是否完成
   if (num !== 0 && isBoardFull()) {
@@ -260,12 +262,57 @@ modalEl.addEventListener('click', (e) => {
   if (e.target === modalEl) modalEl.hidden = true;
 });
 
+// ===================== 暂停 =====================
+
+document.getElementById('pause').addEventListener('click', () => {
+  if (gameOver) return;
+  paused = !paused;
+  const btn = document.getElementById('pause');
+  btn.textContent = paused ? '继续' : '暂停';
+  boardEl.classList.toggle('paused', paused);
+  if (paused) {
+    stopTimer();
+  } else {
+    timerInterval = setInterval(() => { seconds++; updateTimerDisplay(); }, 1000);
+  }
+});
+
+// ===================== 存档 =====================
+
+function saveGame() {
+  const data = {
+    solution, puzzle, playerBoard, givenCells,
+    seconds, difficulty, gameOver, hintCount
+  };
+  localStorage.setItem('sudoku-save', JSON.stringify(data));
+}
+
+function loadGame() {
+  const raw = localStorage.getItem('sudoku-save');
+  if (!raw) return false;
+  try {
+    const data = JSON.parse(raw);
+    solution = data.solution;
+    puzzle = data.puzzle;
+    playerBoard = data.playerBoard;
+    givenCells = data.givenCells;
+    seconds = data.seconds;
+    difficulty = data.difficulty;
+    gameOver = data.gameOver;
+    hintCount = data.hintCount;
+    return true;
+  } catch { return false; }
+}
+
 // ===================== 操作按钮 =====================
 
-document.getElementById('newGame').addEventListener('click', startGame);
+document.getElementById('newGame').addEventListener('click', () => {
+  localStorage.removeItem('sudoku-save');
+  startGame();
+});
 
 document.getElementById('check').addEventListener('click', () => {
-  if (gameOver) return;
+  if (gameOver || paused) return;
   let errors = 0;
   for (let r = 0; r < 9; r++) {
     for (let c = 0; c < 9; c++) {
@@ -283,7 +330,7 @@ document.getElementById('check').addEventListener('click', () => {
 });
 
 document.getElementById('hint').addEventListener('click', () => {
-  if (gameOver) return;
+  if (gameOver || paused) return;
   if (hintCount <= 0) {
     messageEl.textContent = '提示次数已用完';
     setTimeout(() => { messageEl.textContent = ''; }, 2000);
@@ -306,6 +353,7 @@ document.getElementById('hint').addEventListener('click', () => {
 
   selectedCell = [r, c];
   renderBoard();
+  saveGame();
 
   // 闪烁动画
   const idx = r * 9 + c;
@@ -379,12 +427,43 @@ function startGame() {
   selectedCell = null;
   gameOver = false;
   hintCount = 3;
+  paused = false;
+  document.getElementById('pause').textContent = '暂停';
+  boardEl.classList.remove('paused');
   messageEl.textContent = '';
   modalEl.hidden = true;
+  // 同步难度按钮
+  document.querySelectorAll('.diff-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.diff === difficulty);
+  });
   initBoard();
   renderBoard();
   startTimer();
+  saveGame();
 }
 
-// 启动
-startGame();
+function resumeGame() {
+  selectedCell = null;
+  paused = false;
+  document.getElementById('pause').textContent = '暂停';
+  boardEl.classList.remove('paused');
+  messageEl.textContent = '';
+  modalEl.hidden = true;
+  document.querySelectorAll('.diff-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.diff === difficulty);
+  });
+  initBoard();
+  renderBoard();
+  updateTimerDisplay();
+  if (!gameOver) {
+    stopTimer();
+    timerInterval = setInterval(() => { seconds++; updateTimerDisplay(); }, 1000);
+  }
+}
+
+// 启动：优先恢复存档
+if (loadGame()) {
+  resumeGame();
+} else {
+  startGame();
+}
