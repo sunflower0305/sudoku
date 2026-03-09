@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>数独</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#3182ce">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+  <div class="container">
+    <h1>数独</h1>
+
+    <div class="toolbar">
+      <div class="timer" id="timer">00:00</div>
+      <div class="difficulty">
+        <button class="diff-btn active" data-diff="easy">简单</button>
+        <button class="diff-btn" data-diff="medium">中等</button>
+        <button class="diff-btn" data-diff="hard">困难</button>
+      </div>
+    </div>
+
+    <div class="board" id="board"></div>
+
+    <div class="numpad" id="numpad">
+      <button class="num-btn" data-num="1">1</button>
+      <button class="num-btn" data-num="2">2</button>
+      <button class="num-btn" data-num="3">3</button>
+      <button class="num-btn" data-num="4">4</button>
+      <button class="num-btn" data-num="5">5</button>
+      <button class="num-btn" data-num="6">6</button>
+      <button class="num-btn" data-num="7">7</button>
+      <button class="num-btn" data-num="8">8</button>
+      <button class="num-btn" data-num="9">9</button>
+      <button class="num-btn erase-btn" data-num="0">擦除</button>
+    </div>
+
+    <div class="actions">
+      <button id="newGame">新游戏</button>
+      <button id="check">检查</button>
+      <button id="hint">提示</button>
+    </div>
+
+    <div class="message" id="message"></div>
+  </div>
+
+  <div class="modal-overlay" id="modal" hidden>
+    <div class="modal">
+      <h2 id="modalTitle"></h2>
+      <p id="modalText"></p>
+      <button id="modalBtn">好的</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f0f4f8;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.container {
+  max-width: 460px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+h1 {
+  font-size: 28px;
+  color: #1a202c;
+  margin-top: 8px;
+}
+
+/* Toolbar */
+.toolbar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.timer {
+  font-size: 20px;
+  font-weight: 600;
+  color: #4a5568;
+  font-variant-numeric: tabular-nums;
+}
+
+.difficulty {
+  display: flex;
+  gap: 4px;
+}
+
+.diff-btn {
+  padding: 6px 14px;
+  border: 1px solid #cbd5e0;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #4a5568;
+  transition: all 0.15s;
+}
+
+.diff-btn.active {
+  background: #3182ce;
+  color: #fff;
+  border-color: #3182ce;
+}
+
+/* Board */
+.board {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  width: 100%;
+  aspect-ratio: 1;
+  border: 2.5px solid #1a202c;
+  background: #1a202c;
+  gap: 0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cell {
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(16px, 4.5vw, 24px);
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  border: 0.5px solid #cbd5e0;
+  transition: background 0.1s;
+}
+
+/* 3x3 宫格边框 */
+.cell[data-col="2"], .cell[data-col="5"] {
+  border-right: 2px solid #1a202c;
+}
+.cell[data-col="3"], .cell[data-col="6"] {
+  border-left: none;
+}
+.cell[data-row="2"], .cell[data-row="5"] {
+  border-bottom: 2px solid #1a202c;
+}
+.cell[data-row="3"], .cell[data-row="6"] {
+  border-top: none;
+}
+
+.cell.given {
+  color: #1a202c;
+  font-weight: 700;
+  background: #f7fafc;
+}
+
+.cell.filled {
+  color: #3182ce;
+}
+
+.cell.selected {
+  background: #bee3f8;
+}
+
+.cell.highlighted {
+  background: #e2e8f0;
+}
+
+.cell.same-number {
+  background: #c3dafe;
+}
+
+.cell.error {
+  color: #e53e3e;
+  background: #fed7d7;
+}
+
+.cell.hint-cell {
+  animation: hintPulse 0.6s ease;
+}
+
+@keyframes hintPulse {
+  0% { background: #c6f6d5; }
+  100% { background: #bee3f8; }
+}
+
+/* Number pad */
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+
+.num-btn {
+  padding: 14px 0;
+  font-size: 20px;
+  font-weight: 600;
+  border: 1px solid #cbd5e0;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #2d3748;
+  transition: all 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.num-btn:active {
+  background: #3182ce;
+  color: #fff;
+  transform: scale(0.95);
+}
+
+.num-btn.erase-btn {
+  font-size: 14px;
+  color: #718096;
+}
+
+.num-btn.completed {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Action buttons */
+.actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.actions button {
+  flex: 1;
+  padding: 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#newGame {
+  background: #3182ce;
+  color: #fff;
+}
+
+#check {
+  background: #38a169;
+  color: #fff;
+}
+
+#hint {
+  background: #805ad5;
+  color: #fff;
+}
+
+.actions button:active {
+  transform: scale(0.97);
+  filter: brightness(0.9);
+}
+
+/* Message */
+.message {
+  font-size: 14px;
+  color: #718096;
+  min-height: 20px;
+  text-align: center;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+}
+
+.modal h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: #1a202c;
+}
+
+.modal p {
+  color: #718096;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.modal button {
+  padding: 10px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: #3182ce;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Keyboard support */
+.cell:focus {
+  outline: 2px solid #3182ce;
+  outline-offset: -2px;
+  z-index: 1;
+}
