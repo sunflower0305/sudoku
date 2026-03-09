@@ -303,6 +303,61 @@ h1 {
   cursor: pointer;
 }
 
+/* Trophy */
+.trophy {
+  width: 100%;
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 18px;
+  border: 1px solid #e2e8f0;
+}
+
+.trophy-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #718096;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.trophy-items {
+  display: flex;
+  justify-content: space-around;
+}
+
+.trophy-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.trophy-icon {
+  font-size: 24px;
+}
+
+.trophy-label {
+  font-size: 12px;
+  color: #a0aec0;
+}
+
+.trophy-time {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2d3748;
+  font-variant-numeric: tabular-nums;
+}
+
+.trophy-time.new-record {
+  color: #e53e3e;
+  animation: recordPulse 0.6s ease 3;
+}
+
+@keyframes recordPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
 /* Keyboard support */
 .cell:focus {
   outline: 2px solid #3182ce;

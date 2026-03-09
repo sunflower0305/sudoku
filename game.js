@@ -198,7 +198,11 @@ function placeNumber(num) {
     if (checkWin()) {
       gameOver = true;
       stopTimer();
-      showModal('恭喜通关！', `用时 ${timerEl.textContent}，难度：${{ easy: '简单', medium: '中等', hard: '困难' }[difficulty]}`);
+      const diffName = { easy: '简单', medium: '中等', hard: '困难' }[difficulty];
+      const isNew = saveBestTime(difficulty, seconds);
+      renderBestTimes(isNew ? difficulty : null);
+      const extra = isNew ? '\n新纪录！' : '';
+      showModal('恭喜通关！', `用时 ${timerEl.textContent}，难度：${diffName}${extra}`);
     }
   }
 }
@@ -244,6 +248,42 @@ function updateTimerDisplay() {
   const m = String(Math.floor(seconds / 60)).padStart(2, '0');
   const s = String(seconds % 60).padStart(2, '0');
   timerEl.textContent = `${m}:${s}`;
+}
+
+// ===================== 最佳记录 =====================
+
+function formatTime(s) {
+  const m = String(Math.floor(s / 60)).padStart(2, '0');
+  const sec = String(s % 60).padStart(2, '0');
+  return `${m}:${sec}`;
+}
+
+function getBestTimes() {
+  try {
+    return JSON.parse(localStorage.getItem('sudoku-best')) || {};
+  } catch { return {}; }
+}
+
+function saveBestTime(diff, secs) {
+  const best = getBestTimes();
+  const isNew = !(diff in best) || secs < best[diff];
+  if (isNew) {
+    best[diff] = secs;
+    localStorage.setItem('sudoku-best', JSON.stringify(best));
+  }
+  return isNew;
+}
+
+function renderBestTimes(newRecordDiff) {
+  const best = getBestTimes();
+  ['easy', 'medium', 'hard'].forEach(d => {
+    const el = document.getElementById('best-' + d);
+    el.textContent = (d in best) ? formatTime(best[d]) : '--:--';
+    el.classList.remove('new-record');
+    if (d === newRecordDiff) {
+      el.classList.add('new-record');
+    }
+  });
 }
 
 // ===================== 弹窗 =====================
@@ -367,7 +407,11 @@ document.getElementById('hint').addEventListener('click', () => {
   if (isBoardFull() && checkWin()) {
     gameOver = true;
     stopTimer();
-    showModal('恭喜通关！', `用时 ${timerEl.textContent}`);
+    const diffName = { easy: '简单', medium: '中等', hard: '困难' }[difficulty];
+    const isNew = saveBestTime(difficulty, seconds);
+    renderBestTimes(isNew ? difficulty : null);
+    const extra = isNew ? '\n新纪录！' : '';
+    showModal('恭喜通关！', `用时 ${timerEl.textContent}，难度：${diffName}${extra}`);
   }
 });
 
@@ -438,6 +482,7 @@ function startGame() {
   });
   initBoard();
   renderBoard();
+  renderBestTimes();
   startTimer();
   saveGame();
 }
@@ -454,6 +499,7 @@ function resumeGame() {
   });
   initBoard();
   renderBoard();
+  renderBestTimes();
   updateTimerDisplay();
   if (!gameOver) {
     stopTimer();
