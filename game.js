@@ -77,6 +77,8 @@ let difficulty = 'easy';
 let gameOver = false;
 let hintCount = 3;
 let paused = false;
+let notesMode = false;
+let notes = null; // 9x9 array of Sets
 
 // ===================== DOM =====================
 
@@ -120,10 +122,24 @@ function renderBoard() {
     const c = +cell.dataset.col;
     const val = playerBoard[r][c];
 
-    cell.textContent = val || '';
+    cell.innerHTML = '';
     cell.className = 'cell';
     cell.dataset.row = r;
     cell.dataset.col = c;
+
+    if (val !== 0) {
+      cell.textContent = val;
+    } else if (notes[r][c].size > 0) {
+      // 显示笔记候选数字
+      const grid = document.createElement('div');
+      grid.className = 'notes-grid';
+      for (let n = 1; n <= 9; n++) {
+        const s = document.createElement('span');
+        s.textContent = notes[r][c].has(n) ? n : '';
+        grid.appendChild(s);
+      }
+      cell.appendChild(grid);
+    }
 
     if (givenCells[r][c]) {
       cell.classList.add('given');
@@ -189,7 +205,38 @@ function placeNumber(num) {
   const [r, c] = selectedCell;
   if (givenCells[r][c]) return;
 
+  if (notesMode && num !== 0) {
+    // 笔记模式：只在空格上标注
+    if (playerBoard[r][c] !== 0) return;
+    if (notes[r][c].has(num)) {
+      notes[r][c].delete(num);
+    } else {
+      notes[r][c].add(num);
+    }
+    renderBoard();
+    saveGame();
+    return;
+  }
+
+  // 正常模式：填入数字时清除该格笔记
+  notes[r][c].clear();
   playerBoard[r][c] = num;
+
+  // 填入数字后，自动清除同行/同列/同宫其他格子里的对应笔记
+  if (num !== 0) {
+    for (let i = 0; i < 9; i++) {
+      notes[r][i].delete(num);
+      notes[i][c].delete(num);
+    }
+    const br = Math.floor(r / 3) * 3;
+    const bc = Math.floor(c / 3) * 3;
+    for (let rr = br; rr < br + 3; rr++) {
+      for (let cc = bc; cc < bc + 3; cc++) {
+        notes[rr][cc].delete(num);
+      }
+    }
+  }
+
   renderBoard();
   saveGame();
 
@@ -320,9 +367,10 @@ document.getElementById('pause').addEventListener('click', () => {
 // ===================== 存档 =====================
 
 function saveGame() {
+  const notesData = notes.map(row => row.map(s => [...s]));
   const data = {
     solution, puzzle, playerBoard, givenCells,
-    seconds, difficulty, gameOver, hintCount
+    seconds, difficulty, gameOver, hintCount, notes: notesData
   };
   localStorage.setItem('sudoku-save', JSON.stringify(data));
 }
@@ -340,6 +388,11 @@ function loadGame() {
     difficulty = data.difficulty;
     gameOver = data.gameOver;
     hintCount = data.hintCount;
+    if (data.notes) {
+      notes = data.notes.map(row => row.map(arr => new Set(arr)));
+    } else {
+      notes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
+    }
     return true;
   } catch { return false; }
 }
@@ -351,22 +404,14 @@ document.getElementById('newGame').addEventListener('click', () => {
   startGame();
 });
 
-document.getElementById('check').addEventListener('click', () => {
+// ===================== 笔记模式 =====================
+
+document.getElementById('notes').addEventListener('click', () => {
   if (gameOver || paused) return;
-  let errors = 0;
-  for (let r = 0; r < 9; r++) {
-    for (let c = 0; c < 9; c++) {
-      if (playerBoard[r][c] !== 0 && playerBoard[r][c] !== solution[r][c]) {
-        errors++;
-      }
-    }
-  }
-  if (errors === 0) {
-    messageEl.textContent = '目前没有错误，继续加油！';
-  } else {
-    messageEl.textContent = `发现 ${errors} 个错误`;
-  }
-  setTimeout(() => { messageEl.textContent = ''; }, 3000);
+  notesMode = !notesMode;
+  const btn = document.getElementById('notes');
+  btn.classList.toggle('active', notesMode);
+  btn.textContent = notesMode ? '✏️ 笔记中' : '✏️ 笔记';
 });
 
 document.getElementById('hint').addEventListener('click', () => {
@@ -389,6 +434,7 @@ document.getElementById('hint').addEventListener('click', () => {
   const [r, c] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
   playerBoard[r][c] = solution[r][c];
   givenCells[r][c] = true;
+  notes[r][c].clear();
   hintCount--;
 
   selectedCell = [r, c];
@@ -472,6 +518,10 @@ function startGame() {
   gameOver = false;
   hintCount = 3;
   paused = false;
+  notesMode = false;
+  notes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
+  document.getElementById('notes').classList.remove('active');
+  document.getElementById('notes').textContent = '✏️ 笔记';
   document.getElementById('pause').textContent = '暂停';
   boardEl.classList.remove('paused');
   messageEl.textContent = '';
