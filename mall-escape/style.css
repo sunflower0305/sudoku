@@ -107,40 +107,40 @@ canvas {
   50% { transform: scale(1.1); }
 }
 
-/* D-Pad */
-.dpad {
+/* Joystick */
+.joystick {
   position: fixed;
   bottom: 30px;
   left: 30px;
-  width: 130px;
-  height: 130px;
   z-index: 20;
+  pointer-events: auto;
 }
 
-.dpad-btn {
-  position: absolute;
-  width: 44px;
-  height: 44px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 2px solid rgba(255, 255, 255, 0.25);
-  border-radius: 10px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 16px;
+.joystick[hidden] {
+  display: none;
+}
+
+.joystick-base {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
 }
 
-.dpad-btn:active {
+.joystick-knob {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   background: rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  position: absolute;
+  transition: none;
 }
-
-.dpad-btn.up { top: 0; left: 50%; transform: translateX(-50%); }
-.dpad-btn.down { bottom: 0; left: 50%; transform: translateX(-50%); }
-.dpad-btn.left { top: 50%; left: 0; transform: translateY(-50%); }
-.dpad-btn.right { top: 50%; right: 0; transform: translateY(-50%); }
 
 /* Overlays */
 .overlay {

@@ -239,7 +239,7 @@ let isMobile = false;
 // Detect mobile
 function checkMobile() {
   isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  document.getElementById('dpad').hidden = !isMobile || gameState !== 'playing';
+  document.getElementById('joystick').hidden = !isMobile || gameState !== 'playing';
 }
 checkMobile();
 
@@ -256,19 +256,59 @@ document.addEventListener('keyup', e => {
   keys[e.key] = false;
 });
 
-// D-Pad
-document.querySelectorAll('.dpad-btn').forEach(btn => {
-  const dir = btn.dataset.dir;
-  const setDir = (active) => {
-    if (dir === 'up') dpadDir.y = active ? -1 : 0;
-    if (dir === 'down') dpadDir.y = active ? 1 : 0;
-    if (dir === 'left') dpadDir.x = active ? -1 : 0;
-    if (dir === 'right') dpadDir.x = active ? 1 : 0;
-  };
-  btn.addEventListener('touchstart', e => { e.preventDefault(); setDir(true); });
-  btn.addEventListener('touchend', e => { e.preventDefault(); setDir(false); });
-  btn.addEventListener('touchcancel', e => { e.preventDefault(); setDir(false); });
-});
+// Joystick
+let joystickActive = false;
+let joystickTouchId = null;
+const joystickEl = document.getElementById('joystick');
+const joystickBase = joystickEl.querySelector('.joystick-base');
+const joystickKnob = document.getElementById('joystickKnob');
+const JOYSTICK_MAX = 36; // knob max offset from center
+
+function handleJoystickTouch(e) {
+  e.preventDefault();
+  for (const touch of e.changedTouches) {
+    if (!joystickActive) {
+      joystickActive = true;
+      joystickTouchId = touch.identifier;
+    }
+    if (touch.identifier === joystickTouchId) {
+      const rect = joystickBase.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      let dx = touch.clientX - cx;
+      let dy = touch.clientY - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > JOYSTICK_MAX) {
+        dx = (dx / dist) * JOYSTICK_MAX;
+        dy = (dy / dist) * JOYSTICK_MAX;
+      }
+      joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+      // Normalize to -1..1
+      dpadDir.x = dx / JOYSTICK_MAX;
+      dpadDir.y = dy / JOYSTICK_MAX;
+      // Dead zone
+      if (Math.abs(dpadDir.x) < 0.15) dpadDir.x = 0;
+      if (Math.abs(dpadDir.y) < 0.15) dpadDir.y = 0;
+    }
+  }
+}
+
+function handleJoystickEnd(e) {
+  for (const touch of e.changedTouches) {
+    if (touch.identifier === joystickTouchId) {
+      joystickActive = false;
+      joystickTouchId = null;
+      joystickKnob.style.transform = 'translate(0px, 0px)';
+      dpadDir.x = 0;
+      dpadDir.y = 0;
+    }
+  }
+}
+
+joystickBase.addEventListener('touchstart', handleJoystickTouch);
+joystickBase.addEventListener('touchmove', handleJoystickTouch);
+joystickBase.addEventListener('touchend', handleJoystickEnd);
+joystickBase.addEventListener('touchcancel', handleJoystickEnd);
 
 function getInputDir() {
   let dx = 0, dy = 0;
@@ -278,11 +318,9 @@ function getInputDir() {
   if (keys['ArrowRight'] || keys['d'] || keys['D']) dx += 1;
   dx += dpadDir.x;
   dy += dpadDir.y;
-  if (dx !== 0 && dy !== 0) {
-    const inv = 1 / Math.SQRT2;
-    dx *= inv;
-    dy *= inv;
-  }
+  // Clamp
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len > 1) { dx /= len; dy /= len; }
   return { x: dx, y: dy };
 }
 
@@ -864,7 +902,7 @@ function updateHUD() {
 function endGame(reason) {
   gameState = reason === 'win' ? 'won' : 'lost';
   document.getElementById('hud').hidden = true;
-  document.getElementById('dpad').hidden = true;
+  document.getElementById('joystick').hidden = true;
 
   const titleEl = document.getElementById('resultTitle');
   const textEl = document.getElementById('resultText');
