@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>商场逃脱</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- HUD -->
+  <div class="hud" id="hud" hidden>
+    <div class="hud-left">
+      <div class="hp-bar">
+        <div class="hp-fill" id="hpFill"></div>
+        <span class="hp-text" id="hpText">100</span>
+      </div>
+    </div>
+    <div class="hud-right">
+      <div class="timer" id="timer">00:00</div>
+      <div class="clock" id="clock">22:00</div>
+    </div>
+  </div>
+
+  <!-- Mobile D-Pad -->
+  <div class="dpad" id="dpad" hidden>
+    <button class="dpad-btn up" data-dir="up">▲</button>
+    <button class="dpad-btn left" data-dir="left">◀</button>
+    <button class="dpad-btn right" data-dir="right">▶</button>
+    <button class="dpad-btn down" data-dir="down">▼</button>
+  </div>
+
+  <!-- Start Screen -->
+  <div class="overlay" id="startScreen">
+    <div class="screen-box">
+      <h1>商场逃脱</h1>
+      <p class="subtitle">小女孩在商场迷路了...</p>
+      <div class="story">
+        <p>夜幕降临，商场即将关门。</p>
+        <p>你需要在<strong>午夜12点</strong>之前找到出口逃离！</p>
+        <p>小心巡逻的<span class="text-blue">警卫</span>和游荡的<span class="text-red">怪物</span>！</p>
+      </div>
+      <div class="tips">
+        <p>🕹️ 方向键 / WASD / 触屏摇杆 移动</p>
+        <p>👮 靠近警卫 → 激怒追击 → 被抓住则结束</p>
+        <p>👾 怪物攻击 → 扣血</p>
+        <p>💊 收集药包回复血量</p>
+      </div>
+      <button class="btn-start" id="btnStart">开始逃脱</button>
+      <div class="best-record" id="bestRecord"></div>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div class="overlay" id="gameOverScreen" hidden>
+    <div class="screen-box">
+      <h1 id="resultTitle">游戏结束</h1>
+      <p class="result-text" id="resultText"></p>
+      <button class="btn-start" id="btnRestart">再试一次</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
